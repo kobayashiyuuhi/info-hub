@@ -1,0 +1,55 @@
+name: Fetch feeds
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 6時間ごと
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write # deploy.yml を workflow_dispatch で起動するため
+
+concurrency:
+  group: fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache-dependency-path: fetcher/go.sum
+
+      - name: Run tests
+        working-directory: fetcher
+        run: go test ./...
+
+      - name: Run fetcher
+        working-directory: fetcher
+        run: go run . -feeds ../feeds.yml -out ../public/data
+
+      - name: Commit & push if changed
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes."
+          else
+            git commit -m "chore: update feed data ($(date -u +%Y-%m-%dT%H:%MZ))"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # GITHUB_TOKEN での push は他ワークフローを発火させないため、明示的にデプロイを起動する
+      - name: Trigger deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main

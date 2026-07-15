@@ -1,0 +1,26 @@
+# info-hub 購読フィード定義
+# category: フロントのタブになる。自由に追加可
+# X(Twitter) は RSSHub / Nitter 等のブリッジURLをそのままRSSとして登録する
+feeds:
+  - name: Hacker News
+    url: https://news.ycombinator.com/rss
+    category: tech
+  - name: Qiita 人気記事
+    url: https://qiita.com/popular-items/feed
+    category: tech
+  - name: Zenn トレンド
+    url: https://zenn.dev/feed
+    category: tech
+  - name: Publickey
+    url: https://www.publickey1.jp/atom.xml
+    category: tech
+  - name: GitHub Blog
+    url: https://github.blog/feed/
+    category: tech
+  - name: Hacker News AI (hnrss)
+    url: https://hnrss.org/newest?q=AI
+    category: ai
+  # --- X (Twitter) ブリッジ例: RSSHub は不安定なことがある。README参照 ---
+  # - name: "@OpenAI (X)"
+  #   url: https://rsshub.app/twitter/user/OpenAI
+  #   category: x
